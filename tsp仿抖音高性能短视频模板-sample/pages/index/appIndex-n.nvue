@@ -1,0 +1,226 @@
+<template>
+	<view class="pageBox">
+		<!-- #ifdef APP-NVUE -->
+		<tw-videon ref="videoGroup" @lodData="loadingData" @refreshData="refreshData" :autoplay="autoplay" :nextPlay="nextPlay" :loopPlay="loopPlay" :swId="swId"
+		 @doubleClick="doubleClick" @longpress="longpress"></tw-videon>
+		<!-- #endif -->
+		
+		<!-- #ifndef APP-NVUE -->
+		<tw-videov ref="videoGroup" @lodData="loadingData" @refreshData="refreshData" :autoplay="autoplay" :nextPlay="nextPlay" :loopPlay="loopPlay" :swId="swId"
+		 @doubleClick="doubleClick" @longpress="longpress"></tw-videov>
+		 <!-- #endif -->
+		 
+		<text class="automatic" @click="openAutomatic">{{nextPlay?'关闭自动播放':'开启自动播放'}}</text>
+	</view>
+</template>
+<script>
+	/* 
+	 * nvue 可引用两个版本做兼容
+	 */
+	// #ifdef APP-NVUE
+	import twVideon from '@/components/tsp-video/tsp-video-list/video-n.nvue'
+	// #endif
+	
+	
+	// #ifndef APP-NVUE
+	import twVideov from '@/components/tsp-video/tsp-video-list/video-v.vue'
+	// #endif
+	
+	import { getVodData } from '@/static/js/vodData.js'
+	export default{
+		components:{
+			// #ifdef APP-NVUE
+			twVideon,
+			// #endif
+			
+			// #ifndef APP-NVUE
+			twVideov,
+			// #endif
+		},
+		props: {
+			/* 多个tab视频时需传入不同的类型id */
+			swId:{
+				type: String,
+				default:''
+			},
+			/* 当前tabsPage的下标 */
+			pageIndex:{
+				type: Number,
+				default:0
+			},
+			/* 当前tab栏下标 */
+			tabIndex:{
+				type: Number,
+				default:0
+			},
+			/* 当前tab栏数据 */
+			tabItem:{
+				type: Object,
+				default:()=>{}
+			},
+		},
+		data(){
+			return {
+				videoData: [],
+				autoplay:true, //初始加载完成是否自动播放
+				nextPlay:false, //是否开启自动播放
+				loopPlay:true, //是否循环播放
+			}
+		},
+		created() {
+			this.videoData = getVodData()
+			// #ifdef H5
+			this.autoplay = false
+			// #endif
+			this.initVod()
+		},
+		onShow() {
+			/* 播放视频 */
+			if(this.$refs.videoGroup){
+				this.$refs.videoGroup.showPlay()
+				this.$refs.videoGroup.muteVideo(false) //取消视频播放设置为静音，解决切换到其他页面后因为网络问题还在有声音播放
+			}
+		},
+		onHide() {
+			/* 暂停视频 */
+			if(this.$refs.videoGroup){
+				this.$refs.videoGroup.hidePause()
+				this.$refs.videoGroup.muteVideo(true) //视频播放设置为静音，解决切换到其他页面后因为网络问题还在有声音播放
+			}
+		},
+		watch:{
+			tabIndex(val){ //tab栏切换监听操作
+				this.$nextTick(()=>{
+					if(this.$refs.videoGroup){
+						if(val != this.pageIndex){ //tab视频并不在当前视频页
+							this.$refs.videoGroup.muteVideo(true) //视频播放设置为静音，解决切换到其他页面后因为网络问题还在有声音播放
+						}else{
+							this.$refs.videoGroup.muteVideo(false) //取消视频播放设置为静音，解决切换到其他页面后因为网络问题还在有声音播放
+						}
+					}
+				})
+			}
+		},
+		methods:{
+			startData(){
+				/* 模拟请求 */
+				return new Promise((resolve, reject)=>{
+					setTimeout(()=>{
+						let dataList = JSON.parse(JSON.stringify(this.videoData))
+						dataList.filter(item=>{
+							/** 参数数据自行拼接  */
+							item.vodUrl = item.src
+							item.coverImg = item.coverImg //视频封面
+							// #ifdef APP-NVUE
+							item.coverShow = true //是否显示视频封面，vue 小程序端不播放会显示视频，可以不用显示封面，App不播放不会显示视频，就需要封面了
+							// #endif
+							// #ifndef APP-NVUE
+							item.coverShow = false //是否显示视频封面，vue 小程序端不播放会显示视频，可以不用显示封面，App不播放不会显示视频，就需要封面了
+							// #endif
+							item.object_fit = item.object_fit //视频的显示类型
+							item.sliderShow = true //是否显示进度条
+							item.rotateImgShow = true //是否显示旋转头像
+							item.fabulousShow = false//是否点赞
+							item.followReally = false //是否已经关注
+						})
+						resolve(dataList)
+					},500)
+				})
+			},
+			/* 初始加载视频 */
+			initVod(){
+				this.startData().then((res)=>{
+					if(res.length > 0){
+						/* 调用视频的初始方法 */
+						this.$refs.videoGroup.initVod(res,0); //0是播放的下标（默认播放下标是0）
+					}
+				})
+			},
+			/* 下拉刷新 */
+			refreshData(){
+				/* 请求获取数据 */
+				this.startData().then((res)=>{
+					if(res.length > 0){
+						/* 调用视频的重新加载方法 */
+						setTimeout(()=>{ 
+							if(this.swId && this.tabIndex != this.pageIndex){ //tab视频刷新后并不在当前视频页，关闭自动播放
+								this.autoplay = false
+							}else{
+								this.autoplay = true
+							}
+							this.$refs.videoGroup.refreshSquare(res); //0是播放的下标（默认播放下标是0）
+						},2000)
+					}
+				})
+			},
+			/* 上拉加载 */
+			loadingData(){
+				/* 请求分页的数据 */
+				this.startData().then((res)=>{
+					if(res.length > 0){
+						/* 调用视频的到底加载方法方法 */
+						this.$refs.videoGroup.lodingData(res);
+					}
+				})
+			},
+			/* 双击当前视频回调 */
+			doubleClick(event){
+				// console.log('双击',event)
+			},
+			/* 长按当前视频回调 */
+			longpress(event){
+				// console.log('长按',event)
+			},
+			/* 是否开启自动播放 */
+			openAutomatic(){
+				this.nextPlay = !this.nextPlay
+				this.loopPlay = this.nextPlay ? false : true
+			},
+			/* tabVideo onShow 播放视频 */
+			assemblyOnShow(){
+				if(this.$refs.videoGroup){
+					this.$refs.videoGroup.showPlay()
+					this.$refs.videoGroup.muteVideo(false) //取消视频播放设置为静音，解决切换到其他页面后因为网络问题还在有声音播放
+				}
+			},
+			/* tabVideo onHide 暂停视频 */
+			assemblyOnHide(){
+				if(this.$refs.videoGroup){
+					this.$refs.videoGroup.hidePause()
+					this.$refs.videoGroup.muteVideo(true) //视频播放设置为静音，解决切换到其他页面后因为网络问题还在有声音播放
+				}
+			},
+			/* tabVideo进度条滑动事件 */
+			appVodTouchmoveSlider(event){
+				this.$refs.videoGroup.touchmoveSlider(event);
+			},
+			/* tabVideo进度条滑动结束事件 */
+			appVodTouchendSlider(event){
+				this.$refs.videoGroup.touchendSlider(event);
+			},
+		}
+	}
+</script>
+<style>
+	.pageBox{
+		/* #ifndef APP-NVUE */
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		/* #endif */
+		background-color: #000000;
+		flex: 1;
+	}
+	.automatic{
+		position: absolute;
+		/* #ifndef APP-NVUE */
+		z-index: 20;
+		/* #endif */
+		top: 150rpx;
+		left: 50rpx;
+		font-size: 32rpx;
+		color: blue;
+	}
+</style>

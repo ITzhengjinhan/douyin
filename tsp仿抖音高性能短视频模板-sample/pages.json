@@ -1,0 +1,112 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/tabVideo",
+			"style": {
+				"navigationBarTitleText": "tab视频",
+				"navigationStyle":"custom",
+				"navigationBarTextStyle":"white"
+			}
+		},
+		// #ifndef APP-PLUS
+		{
+			"path": "pages/index/h5Index-v",
+			"style": {
+				"navigationBarTitleText": "uni-app",
+				"navigationStyle":"custom",
+				"navigationBarTextStyle":"white"
+			}
+		},
+		{
+			"path": "pages/details/details-v",
+			"style": {
+				"navigationBarTitleText": "个人信息",
+				"navigationStyle":"custom"
+			}
+		},
+		{
+			"path": "pages/details/video-see/video-seev",
+			"style": {
+				"navigationBarTitleText": "视频预览",
+				"navigationStyle":"custom",
+				"navigationBarTextStyle":"white"
+			}
+		},
+		// #endif
+		
+		// #ifdef APP-PLUS
+		{
+			"path": "pages/index/appIndex-n",
+			"style": {
+				"navigationBarTitleText": "uni-app",
+				"navigationStyle":"custom",
+				"navigationBarTextStyle":"white"
+			}
+		},
+		{
+			"path": "pages/details/details-n",
+			"style": {
+				"navigationBarTitleText": "个人信息",
+				"navigationStyle":"custom",
+				"navigationBarTextStyle":"black"
+			}
+		},
+		{
+			"path": "pages/details/video-see/video-seen",
+			"style": {
+				"navigationBarTitleText": "视频预览",
+				"navigationStyle":"custom",
+				"navigationBarTextStyle":"white"
+			}
+		},
+		// #endif
+		{
+			"path": "pages/news/news",
+			"style": {
+				"navigationBarTitleText": "消息",
+				"navigationStyle":"custom"
+			}
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "我",
+				"navigationStyle":"custom"
+			}
+		}
+	],
+	"tabBar": {
+	    "color": "#999",
+	    "selectedColor": "#FFFFFF",
+	    "borderStyle": "black",
+	    "backgroundColor": "#000000",
+		// #ifdef APP-PLUS
+		"fontSize":"15px",
+		// #endif
+	    "list": [
+		{
+			// #ifndef APP-PLUS
+			"pagePath": "pages/index/h5Index-v",
+			// #endif
+			// #ifdef APP-PLUS
+		    "pagePath": "pages/index/appIndex-n",
+			// #endif
+		    "text": "首页"
+		},{
+	        "pagePath": "pages/index/tabVideo",
+	        "text": "tab视频"
+	    },{
+	        "pagePath": "pages/news/news",
+	        "text": "消息"
+	    },{
+	        "pagePath": "pages/user/user",
+	        "text": "我的"
+	    }]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "App",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}
